@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DailyLog — Task Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, query, where, getDocs, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────────────────────────
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  /* ── helpers ── */
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function fmtDateLabel(dateStr){
+    // dateStr = "YYYY-MM-DD"
+    const [y,m,d] = dateStr.split('-');
+    const dt = new Date(+y, +m-1, +d);
+    return dt.toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+  }
+
+  /* ── save task ── */
+  window.saveTask = async function(){
+    const date  = document.getElementById('taskDate').value;
+    const isLeave = document.getElementById('leaveToggle').checked;
+    const desc  = isLeave ? '' : document.getElementById('taskDesc').value.trim();
+    const event = document.getElementById('taskEvent').value.trim();
+
+    if(!date){ showToast('Please pick a date','error'); return; }
+    if(!isLeave && !desc){ showToast('Enter a description','error'); return; }
+
+    const saveBtn = document.getElementById('saveBtn');
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving…';
+
+    try {
+      const [y,m,d] = date.split('-').map(Number);
+      const ts = Timestamp.fromDate(new Date(y, m-1, d, 12, 0, 0));
+
+      await addDoc(collection(db,'tasks'),{
+        date,
+        dateTs: ts,
+        event: event || (isLeave ? 'Leave' : 'Task'),
+        description: desc,
+        isLeave,
+        createdAt: Timestamp.now()
+      });
+
+      showToast('✓ Saved successfully','success');
+      document.getElementById('taskForm').reset();
+      document.getElementById('taskDate').value = todayStr();
+      toggleDesc();
+      loadRecentTasks();
+    } catch(e){
+      console.error(e);
+      showToast('Firebase error — check config','error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Entry';
+    }
+  };
+
+  /* ── load recent (last 10) ── */
+  window.loadRecentTasks = async function(){
+    const list = document.getElementById('recentList');
+    list.innerHTML = '<div class="loading-msg">Loading…</div>';
+    try {
+      const q = query(collection(db,'tasks'), orderBy('dateTs','desc'));
+      const snap = await getDocs(q);
+      if(snap.empty){ list.innerHTML='<div class="empty-msg">No entries yet.</div>'; return; }
+      let html = '';
+      let shown = 0;
+      snap.forEach(doc=>{
+        if(shown >= 10) return;
+        const d = doc.data();
+        html += buildCard(d);
+        shown++;
+      });
+      list.innerHTML = html;
+    } catch(e){
+      console.error(e);
+      list.innerHTML = '<div class="empty-msg">Could not load — check Firebase config.</div>';
+    }
+  };
+
+  /* ── export CSV ── */
+  window.exportCSV = async function(){
+    const monthVal = document.getElementById('exportMonth').value;
+    if(!monthVal){ showToast('Select a month to export','error'); return; }
+
+    const [y, m] = monthVal.split('-').map(Number);
+    const start  = new Date(y, m-1, 1, 0, 0, 0);
+    const end    = new Date(y, m,   0, 23, 59, 59);
+
+    const exportBtn = document.getElementById('exportBtn');
+    exportBtn.disabled = true;
+    exportBtn.textContent = 'Exporting…';
+
+    try {
+      const q = query(
+        collection(db,'tasks'),
+        where('dateTs','>=', Timestamp.fromDate(start)),
+        where('dateTs','<=', Timestamp.fromDate(end)),
+        orderBy('dateTs','asc')
+      );
+      const snap = await getDocs(q);
+
+      if(snap.empty){ showToast('No data for selected month','error'); return; }
+
+      const rows = [['Date','Day','Event / Title','Description','Leave']];
+      snap.forEach(doc=>{
+        const d = doc.data();
+        const [dy,dm,dd] = d.date.split('-').map(Number);
+        const dt = new Date(dy, dm-1, dd);
+        const dayName = dt.toLocaleDateString('en-IN',{weekday:'long'});
+        rows.push([
+          d.date,
+          dayName,
+          d.event,
+          d.isLeave ? 'LEAVE' : d.description.replace(/\n/g,' '),
+          d.isLeave ? 'Yes' : 'No'
+        ]);
+      });
+
+      const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      const monthLabel = start.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+      a.href = url;
+      a.download = `tasks_${monthVal}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast(`Exported ${snap.size} entries for ${monthLabel}`,'success');
+    } catch(e){
+      console.error(e);
+      showToast('Export failed — check Firebase config','error');
+    } finally {
+      exportBtn.disabled = false;
+      exportBtn.textContent = '⬇ Export CSV';
+    }
+  };
+
+  function buildCard(d){
+    const leaveBadge = d.isLeave
+      ? '<span class="badge leave-badge">LEAVE</span>'
+      : '<span class="badge work-badge">WORK</span>';
+    const desc = d.isLeave
+      ? '<p class="card-desc leave-note">Day off — no task logged.</p>'
+      : `<p class="card-desc">${d.description.replace(/\n/g,'<br>')}</p>`;
+    return `
+      <div class="task-card ${d.isLeave?'card-leave':''}">
+        <div class="card-top">
+          <span class="card-date">${fmtDateLabel(d.date)}</span>
+          ${leaveBadge}
+        </div>
+        <p class="card-event">${d.event}</p>
+        ${desc}
+      </div>`;
+  }
+
+  /* ── init ── */
+  window.addEventListener('DOMContentLoaded', ()=>{
+    document.getElementById('taskDate').value = todayStr();
+    // default export month to current
+    const now = new Date();
+    document.getElementById('exportMonth').value = `${now.getFullYear()}-${pad(now.getMonth()+1)}`;
+    loadRecentTasks();
+  });
+</script>
+
+<style>
+  :root{
+    --bg:       #0d0f14;
+    --surface:  #151820;
+    --surface2: #1c2030;
+    --border:   #252a3a;
+    --accent:   #5c6ef8;
+    --accent2:  #f85c8a;
+    --green:    #3ddc84;
+    --amber:    #f8b84a;
+    --text:     #e8eaf2;
+    --muted:    #6b7394;
+    --card-r:   14px;
+    --r:        10px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header{
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo-icon{
+    width: 38px; height: 38px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 18px;
+  }
+  .logo-text{
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+  }
+  .logo-text span{ color: var(--accent); }
+  .header-sub{
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── LAYOUT ── */
+  .main{
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+  @media(max-width:780px){
+    .main{ grid-template-columns: 1fr; padding: 20px 16px; }
+    header{ padding: 14px 16px; }
+  }
+
+  /* ── PANELS ── */
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    overflow: hidden;
+  }
+  .panel-header{
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-icon{
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+  .panel-title{
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.2px;
+  }
+  .panel-body{ padding: 20px; }
+
+  /* ── FORM ── */
+  .field{ margin-bottom: 16px; }
+  label{
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 7px;
+    text-transform: uppercase;
+  }
+  input[type="date"],
+  input[type="text"],
+  textarea,
+  input[type="month"]{
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--r);
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  input:focus, textarea:focus{
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(92,110,248,.15);
+  }
+  textarea{ resize: vertical; min-height: 100px; }
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="month"]::-webkit-calendar-picker-indicator{
+    filter: invert(0.7);
+    cursor: pointer;
+  }
+
+  /* ── LEAVE TOGGLE ── */
+  .toggle-row{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    cursor: pointer;
+    user-select: none;
+    transition: border-color .2s;
+  }
+  .toggle-row:hover{ border-color: var(--accent2); }
+  .toggle-row input[type="checkbox"]{ display:none; }
+  .toggle-track{
+    width: 42px; height: 24px;
+    background: var(--border);
+    border-radius: 12px;
+    position: relative;
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  .toggle-track::after{
+    content:'';
+    position: absolute;
+    left: 3px; top: 3px;
+    width: 18px; height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    transition: left .2s;
+  }
+  .toggle-row.active .toggle-track{ background: var(--accent2); }
+  .toggle-row.active .toggle-track::after{ left: 21px; }
+  .toggle-label{
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .toggle-sub{ font-size: 12px; color: var(--muted); margin-left: auto; }
+
+  /* ── DESC SECTION ── */
+  #descSection{ transition: opacity .25s; }
+  #descSection.hidden{ display: none; }
+
+  /* ── LEAVE BANNER ── */
+  .leave-banner{
+    display: none;
+    background: linear-gradient(135deg, rgba(248,92,138,.1), rgba(248,92,138,.04));
+    border: 1px solid rgba(248,92,138,.3);
+    border-radius: var(--r);
+    padding: 14px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--accent2);
+    margin-bottom: 16px;
+  }
+  .leave-banner.show{ display: block; }
+
+  /* ── SAVE BTN ── */
+  .save-btn{
+    width: 100%;
+    padding: 13px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--r);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: transform .15s, box-shadow .15s, opacity .2s;
+  }
+  .save-btn:hover:not(:disabled){ transform: translateY(-2px); box-shadow: 0 8px 24px rgba(92,110,248,.35); }
+  .save-btn:active:not(:disabled){ transform: translateY(0); }
+  .save-btn:disabled{ opacity: .55; cursor: not-allowed; }
+
+  /* ── RIGHT COLUMN ── */
+  .right-col{ display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── RECENT CARDS ── */
+  #recentList{ display: flex; flex-direction: column; gap: 12px; }
+  .loading-msg, .empty-msg{
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 24px 0;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .task-card{
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    padding: 16px;
+    transition: border-color .2s, transform .2s;
+    animation: slideUp .3s ease both;
+  }
+  .task-card:hover{ border-color: var(--accent); transform: translateY(-1px); }
+  .task-card.card-leave{
+    border-color: rgba(248,92,138,.3);
+    background: linear-gradient(135deg, rgba(248,92,138,.06), var(--surface2));
+  }
+
+  @keyframes slideUp{
+    from{ opacity:0; transform: translateY(12px); }
+    to  { opacity:1; transform: translateY(0); }
+  }
+
+  .card-top{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .card-date{
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .badge{
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+    margin-left: auto;
+  }
+  .work-badge{ background: rgba(61,220,132,.15); color: var(--green); border: 1px solid rgba(61,220,132,.3); }
+  .leave-badge{ background: rgba(248,92,138,.15); color: var(--accent2); border: 1px solid rgba(248,92,138,.3); }
+  .card-event{
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  .card-desc{
+    font-size: 13px;
+    color: #a0a8c0;
+    line-height: 1.55;
+  }
+  .leave-note{ color: var(--accent2); font-style: italic; }
+
+  /* ── EXPORT ── */
+  .export-row{
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .export-row .field{ flex: 1; margin: 0; }
+  .export-btn{
+    padding: 10px 18px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: var(--r);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s, color .2s;
+    height: 43px;
+  }
+  .export-btn:hover:not(:disabled){ background: var(--accent); color: #fff; }
+  .export-btn:disabled{ opacity: .5; cursor: not-allowed; }
+
+  /* ── TOAST ── */
+  #toast{
+    position: fixed;
+    bottom: 28px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 10px 22px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 999;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #toast.show{ transform: translateX(-50%) translateY(0); opacity: 1; }
+  #toast.success{ border-color: var(--green); color: var(--green); }
+  #toast.error  { border-color: var(--accent2); color: var(--accent2); }
+
+  /* ── FIREBASE NOTE ── */
+  .firebase-note{
+    background: rgba(248,184,74,.07);
+    border: 1px solid rgba(248,184,74,.3);
+    border-radius: var(--r);
+    padding: 14px 16px;
+    font-size: 12px;
+    color: var(--amber);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .firebase-note strong{ font-weight: 600; }
+  .firebase-note code{
+    font-family: 'DM Mono', monospace;
+    background: rgba(248,184,74,.12);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  .dot{ width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block;margin-right:6px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">📋</div>
+  <div>
+    <div class="logo-text">Daily<span>Log</span></div>
+  </div>
+  <div class="header-sub">TASK MANAGER</div>
+</header>
+
+<div class="main">
+
+  <!-- LEFT: Entry Form -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:rgba(92,110,248,.15)">✏️</div>
+        <div class="panel-title">Add Daily Entry</div>
+      </div>
+      <div class="panel-body">
+
+        <div class="firebase-note">
+          <span class="dot"></span><strong>Setup Required:</strong> Open this file, find <code>firebaseConfig</code> near the top, and replace the placeholder values with your Firebase project credentials. <a href="https://console.firebase.google.com" target="_blank" style="color:var(--amber)">→ Firebase Console</a>
+        </div>
+
+        <form id="taskForm" onsubmit="event.preventDefault()">
+
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="taskDate" required>
+          </div>
+
+          <div class="field">
+            <label>Event / Task Title</label>
+            <input type="text" id="taskEvent" placeholder="e.g. Sprint Planning, Client Call…">
+          </div>
+
+          <!-- Leave Toggle -->
+          <label style="margin-bottom:7px">Day Type</label>
+          <label class="toggle-row" id="toggleRow" onclick="toggleDesc()">
+            <input type="checkbox" id="leaveToggle">
+            <div class="toggle-track"></div>
+            <span class="toggle-label">Mark as Leave</span>
+            <span class="toggle-sub" id="toggleSub">Working day</span>
+          </label>
+
+          <!-- Leave Banner -->
+          <div class="leave-banner" id="leaveBanner">
+            🏖️ Leave day — no description needed
+          </div>
+
+          <!-- Description (hidden on leave) -->
+          <div id="descSection">
+            <div class="field">
+              <label>Description / Work Done</label>
+              <textarea id="taskDesc" placeholder="Describe what you worked on today…"></textarea>
+            </div>
+          </div>
+
+          <button class="save-btn" id="saveBtn" onclick="saveTask()">Save Entry</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Recent + Export -->
+  <div class="right-col">
+
+    <!-- Export Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:rgba(61,220,132,.15)">📤</div>
+        <div class="panel-title">Export Monthly CSV</div>
+      </div>
+      <div class="panel-body">
+        <div class="export-row">
+          <div class="field">
+            <label>Select Month</label>
+            <input type="month" id="exportMonth">
+          </div>
+          <button class="export-btn" id="exportBtn" onclick="exportCSV()">⬇ Export CSV</button>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px">
+          CSV format: Date · Day · Event Title · Description · Leave status
+        </p>
+      </div>
+    </div>
+
+    <!-- Recent Entries -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:rgba(248,92,138,.15)">🗂️</div>
+        <div class="panel-title">Recent Entries</div>
+        <button onclick="loadRecentTasks()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;">↺ Refresh</button>
+      </div>
+      <div class="panel-body">
+        <div id="recentList">
+          <div class="loading-msg">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  /* helpers that don't need Firebase */
+  function todayStr(){
+    const n = new Date();
+    return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
+  }
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function toggleDesc(){
+    const cb   = document.getElementById('leaveToggle');
+    const row  = document.getElementById('toggleRow');
+    const sec  = document.getElementById('descSection');
+    const sub  = document.getElementById('toggleSub');
+    const ban  = document.getElementById('leaveBanner');
+    const isOn = cb.checked;
+    row.classList.toggle('active', isOn);
+    sec.classList.toggle('hidden', isOn);
+    ban.classList.toggle('show',   isOn);
+    sub.textContent = isOn ? 'Leave day' : 'Working day';
+  }
+
+  let toastTimer;
+  function showToast(msg, type='success'){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>{ t.className=''; }, 3000);
+  }
+</script>
+
+</body>
+</html>
