@@ -5,403 +5,212 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DailyLog — Task Manager</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-
 <style>
   :root{
-    --bg:       #0d0f14;
-    --surface:  #151820;
-    --surface2: #1c2030;
-    --border:   #252a3a;
-    --accent:   #5c6ef8;
-    --accent2:  #f85c8a;
-    --green:    #3ddc84;
-    --amber:    #f8b84a;
-    --text:     #e8eaf2;
-    --muted:    #6b7394;
-    --card-r:   14px;
-    --r:        10px;
+    --bg:#0d0f14; --surface:#151820; --surface2:#1c2030; --border:#252a3a;
+    --accent:#5c6ef8; --accent2:#f85c8a; --green:#3ddc84; --amber:#f8b84a;
+    --text:#e8eaf2; --muted:#6b7394; --card-r:14px; --r:10px;
   }
-  *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
-
-  body{
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    min-height: 100vh;
-    line-height: 1.6;
-  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;min-height:100vh;line-height:1.6}
 
   /* HEADER */
-  header{
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 32px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .logo-icon{
-    width: 36px; height: 36px;
-    background: var(--accent);
-    border-radius: 10px;
-    display: grid; place-items: center;
-    font-size: 17px;
-    flex-shrink: 0;
-  }
-  .logo-text{
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 20px;
-    letter-spacing: -0.5px;
-  }
-  .logo-text span{ color: var(--accent); }
-  .header-right{
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-  .storage-info{
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.04em;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 4px 12px;
-  }
-  .storage-info span{ color: var(--green); font-weight: 500; }
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+  .logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:grid;place-items:center;font-size:17px;flex-shrink:0}
+  .logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-0.5px}
+  .logo-text span{color:var(--accent)}
+  .hdr-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .status-pill{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;display:flex;align-items:center;gap:6px}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+  .status-dot.ok{background:var(--green)}
+  .status-dot.err{background:var(--accent2)}
+  .cfg-btn{font-family:'DM Mono',monospace;font-size:11px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:4px 12px;cursor:pointer;transition:border-color .2s,color .2s}
+  .cfg-btn:hover{border-color:var(--amber);color:var(--amber)}
+
+  /* SETUP MODAL */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+  .modal-bg.hidden{display:none}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px;width:min(480px,95vw);max-height:90vh;overflow-y:auto}
+  .modal h2{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;margin-bottom:6px}
+  .modal p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+  .modal ol{font-size:13px;color:var(--muted);line-height:2;padding-left:18px;margin-bottom:20px}
+  .modal ol a{color:var(--accent);text-decoration:none}
+  .modal ol a:hover{text-decoration:underline}
+  .modal-field{margin-bottom:14px}
+  .modal-field label{display:block;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.09em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+  .modal-field input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--r);padding:10px 13px;font-family:'DM Mono',monospace;font-size:13px;outline:none;transition:border-color .2s}
+  .modal-field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(92,110,248,.13)}
+  .modal-field input::placeholder{color:var(--muted)}
+  .modal-hint{font-size:11px;color:var(--muted);margin-top:5px}
+  .modal-hint code{font-family:'DM Mono',monospace;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px}
+  .modal-actions{display:flex;gap:10px;margin-top:20px}
+  .btn-primary{flex:1;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s}
+  .btn-primary:hover{opacity:.85}
+  .btn-ghost{padding:11px 18px;background:none;border:1px solid var(--border);color:var(--muted);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:border-color .2s}
+  .btn-ghost:hover{border-color:var(--text);color:var(--text)}
 
   /* LAYOUT */
-  .main{
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 28px 24px;
-    display: grid;
-    grid-template-columns: 400px 1fr;
-    gap: 24px;
-    align-items: start;
-  }
-  @media(max-width:800px){
-    .main{ grid-template-columns: 1fr; padding: 16px; }
-    header{ padding: 12px 16px; }
-  }
+  .main{max-width:1120px;margin:0 auto;padding:28px 24px;display:grid;grid-template-columns:400px 1fr;gap:24px;align-items:start}
+  @media(max-width:820px){.main{grid-template-columns:1fr;padding:16px}header{padding:12px 16px}}
 
   /* PANELS */
-  .panel{
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--card-r);
-    overflow: hidden;
-  }
-  .panel-header{
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .panel-icon{
-    width: 28px; height: 28px;
-    border-radius: 7px;
-    display: grid; place-items: center;
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-  .panel-title{
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-  }
-  .panel-body{ padding: 18px; }
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden}
+  .panel-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+  .panel-icon{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font-size:14px;flex-shrink:0}
+  .panel-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px}
+  .panel-body{padding:18px}
 
   /* FORM */
-  .field{ margin-bottom: 14px; }
-  label{
-    display: block;
-    font-family: 'DM Mono', monospace;
-    font-size: 10.5px;
-    letter-spacing: 0.09em;
-    color: var(--muted);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-  }
-  input[type="date"],
-  input[type="text"],
-  input[type="month"],
-  textarea,
-  select{
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: var(--r);
-    padding: 10px 13px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    outline: none;
-    transition: border-color .2s, box-shadow .2s;
-    appearance: none;
-    -webkit-appearance: none;
-  }
-  input:focus, textarea:focus, select:focus{
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(92,110,248,.13);
-  }
-  textarea{ resize: vertical; min-height: 108px; }
-  input[type="date"]::-webkit-calendar-picker-indicator,
-  input[type="month"]::-webkit-calendar-picker-indicator{
-    filter: invert(0.65); cursor: pointer;
-  }
+  .field{margin-bottom:14px}
+  label{display:block;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.09em;color:var(--muted);margin-bottom:6px;text-transform:uppercase}
+  input[type="date"],input[type="text"],input[type="month"],textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:var(--r);padding:10px 13px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
+  input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(92,110,248,.13)}
+  textarea{resize:vertical;min-height:108px}
+  input[type="date"]::-webkit-calendar-picker-indicator,input[type="month"]::-webkit-calendar-picker-indicator{filter:invert(.65);cursor:pointer}
 
-  /* LEAVE TOGGLE */
-  .toggle-row{
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-    padding: 11px 13px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--r);
-    cursor: pointer;
-    user-select: none;
-    transition: border-color .2s;
-  }
-  .toggle-row:hover{ border-color: var(--accent2); }
-  .toggle-row input[type="checkbox"]{ display:none; }
-  .toggle-track{
-    width: 40px; height: 22px;
-    background: var(--border);
-    border-radius: 11px;
-    position: relative;
-    flex-shrink: 0;
-    transition: background .2s;
-  }
-  .toggle-track::after{
-    content:'';
-    position: absolute;
-    left: 3px; top: 3px;
-    width: 16px; height: 16px;
-    background: #fff;
-    border-radius: 50%;
-    transition: left .2s;
-  }
-  .toggle-row.active .toggle-track{ background: var(--accent2); }
-  .toggle-row.active .toggle-track::after{ left: 21px; }
-  .toggle-label{ font-weight: 500; font-size: 14px; }
-  .toggle-sub{ font-size: 11px; color: var(--muted); margin-left: auto; }
+  /* TOGGLE */
+  .toggle-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:11px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;user-select:none;transition:border-color .2s}
+  .toggle-row:hover{border-color:var(--accent2)}
+  .toggle-row input[type="checkbox"]{display:none}
+  .toggle-track{width:40px;height:22px;background:var(--border);border-radius:11px;position:relative;flex-shrink:0;transition:background .2s}
+  .toggle-track::after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .2s}
+  .toggle-row.active .toggle-track{background:var(--accent2)}
+  .toggle-row.active .toggle-track::after{left:21px}
+  .toggle-label{font-weight:500;font-size:14px}
+  .toggle-sub{font-size:11px;color:var(--muted);margin-left:auto}
+  #descSection.hidden{display:none}
+  .leave-banner{display:none;background:linear-gradient(135deg,rgba(248,92,138,.1),rgba(248,92,138,.04));border:1px solid rgba(248,92,138,.3);border-radius:var(--r);padding:12px;text-align:center;font-size:13px;color:var(--accent2);margin-bottom:14px}
+  .leave-banner.show{display:block}
 
-  #descSection.hidden{ display: none; }
+  /* BUTTONS */
+  .save-btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s,opacity .2s}
+  .save-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(92,110,248,.35)}
+  .save-btn:disabled{opacity:.5;cursor:not-allowed}
+  .right-col{display:flex;flex-direction:column;gap:20px}
 
-  .leave-banner{
-    display: none;
-    background: linear-gradient(135deg, rgba(248,92,138,.1), rgba(248,92,138,.04));
-    border: 1px solid rgba(248,92,138,.3);
-    border-radius: var(--r);
-    padding: 12px;
-    text-align: center;
-    font-size: 13px;
-    color: var(--accent2);
-    margin-bottom: 14px;
-  }
-  .leave-banner.show{ display: block; }
+  /* EXPORT */
+  .export-row{display:flex;gap:10px;align-items:flex-end}
+  .export-row .field{flex:1;margin:0}
+  .export-btns{display:flex;gap:8px;margin-top:12px}
+  .txt-btn{padding:10px 16px;background:transparent;border:1px solid var(--green);color:var(--green);border-radius:var(--r);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s;height:42px}
+  .txt-btn:hover:not(:disabled){background:var(--green);color:#000}
+  .txt-btn:disabled{opacity:.5;cursor:not-allowed}
+  .export-btn{padding:10px 16px;background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:var(--r);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s;height:42px}
+  .export-btn:hover:not(:disabled){background:var(--accent);color:#fff}
+  .export-btn:disabled{opacity:.5;cursor:not-allowed}
 
-  /* SAVE BTN */
-  .save-btn{
-    width: 100%;
-    padding: 12px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: var(--r);
-    font-family: 'Syne', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform .15s, box-shadow .15s, opacity .2s;
-  }
-  .save-btn:hover:not(:disabled){ transform: translateY(-2px); box-shadow: 0 8px 24px rgba(92,110,248,.35); }
-  .save-btn:active:not(:disabled){ transform: translateY(0); }
-  .save-btn:disabled{ opacity: .5; cursor: not-allowed; }
+  /* MONTH CHIPS */
+  .month-files{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .month-chip{font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .chip-count{background:var(--accent);color:#fff;border-radius:10px;padding:0 6px;font-size:10px;font-weight:600}
 
-  /* RIGHT COL */
-  .right-col{ display: flex; flex-direction: column; gap: 20px; }
-
-  /* EXPORT PANEL */
-  .export-row{ display: flex; gap: 10px; align-items: flex-end; }
-  .export-row .field{ flex:1; margin:0; }
-  .export-btn{
-    padding: 10px 16px;
-    background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    border-radius: var(--r);
-    font-family: 'Syne', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background .2s, color .2s;
-    height: 42px;
-  }
-  .export-btn:hover:not(:disabled){ background: var(--accent); color: #fff; }
-  .export-btn:disabled{ opacity:.5; cursor:not-allowed; }
-
-  .txt-btn{
-    padding: 10px 16px;
-    background: transparent;
-    border: 1px solid var(--green);
-    color: var(--green);
-    border-radius: var(--r);
-    font-family: 'Syne', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background .2s, color .2s;
-    height: 42px;
-  }
-  .txt-btn:hover:not(:disabled){ background: var(--green); color: #000; }
-  .txt-btn:disabled{ opacity:.5; cursor:not-allowed; }
-
-  /* MONTH FILES LIST */
-  .month-files{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-  .month-chip{
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 4px 12px;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .month-chip .chip-count{
-    background: var(--accent);
-    color: #fff;
-    border-radius: 10px;
-    padding: 0 6px;
-    font-size: 10px;
-    font-weight: 600;
-  }
-
-  /* RECENT CARDS */
-  #recentList{ display: flex; flex-direction: column; gap: 10px; }
-  .loading-msg, .empty-msg{
-    color: var(--muted);
-    font-size: 13px;
-    text-align: center;
-    padding: 24px 0;
-    font-family: 'DM Mono', monospace;
-  }
-
-  .task-card{
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--card-r);
-    padding: 14px 16px;
-    transition: border-color .2s, transform .15s;
-    animation: slideUp .3s ease both;
-  }
-  .task-card:hover{ border-color: var(--accent); transform: translateY(-1px); }
-  .task-card.card-leave{
-    border-color: rgba(248,92,138,.25);
-    background: linear-gradient(135deg, rgba(248,92,138,.05), var(--surface2));
-  }
-  @keyframes slideUp{
-    from{ opacity:0; transform: translateY(10px); }
-    to  { opacity:1; transform: translateY(0); }
-  }
-
-  .card-top{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-  .card-date{
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.04em;
-  }
-  .badge{
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.07em;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-weight: 600;
-    margin-left: auto;
-  }
-  .work-badge{ background: rgba(61,220,132,.13); color: var(--green); border: 1px solid rgba(61,220,132,.3); }
-  .leave-badge{ background: rgba(248,92,138,.13); color: var(--accent2); border: 1px solid rgba(248,92,138,.3); }
-  .card-event{
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    margin-bottom: 4px;
-  }
-  .card-desc{ font-size: 13px; color: #9aa0bc; line-height: 1.5; }
-  .card-desc.leave-note{ color: var(--accent2); font-style: italic; }
+  /* CARDS */
+  #recentList{display:flex;flex-direction:column;gap:10px}
+  .loading-msg,.empty-msg{color:var(--muted);font-size:13px;text-align:center;padding:24px 0;font-family:'DM Mono',monospace}
+  .task-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--card-r);padding:14px 16px;transition:border-color .2s,transform .15s;animation:slideUp .3s ease both}
+  .task-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .task-card.card-leave{border-color:rgba(248,92,138,.25);background:linear-gradient(135deg,rgba(248,92,138,.05),var(--surface2))}
+  @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .card-top{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .card-date{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.04em}
+  .badge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.07em;padding:2px 8px;border-radius:20px;font-weight:600;margin-left:auto}
+  .work-badge{background:rgba(61,220,132,.13);color:var(--green);border:1px solid rgba(61,220,132,.3)}
+  .leave-badge{background:rgba(248,92,138,.13);color:var(--accent2);border:1px solid rgba(248,92,138,.3)}
+  .card-event{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px}
+  .card-desc{font-size:13px;color:#9aa0bc;line-height:1.5}
+  .card-desc.leave-note{color:var(--accent2);font-style:italic}
 
   /* TOAST */
-  #toast{
-    position: fixed;
-    bottom: 26px; left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 40px;
-    padding: 9px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    z-index: 999;
-    transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
-    opacity: 0;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  #toast.show{ transform: translateX(-50%) translateY(0); opacity: 1; }
-  #toast.success{ border-color: var(--green); color: var(--green); }
-  #toast.error  { border-color: var(--accent2); color: var(--accent2); }
+  #toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border);border-radius:40px;padding:9px 20px;font-size:13px;font-weight:500;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;pointer-events:none;white-space:nowrap}
+  #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  #toast.success{border-color:var(--green);color:var(--green)}
+  #toast.error{border-color:var(--accent2);color:var(--accent2)}
+  #toast.info{border-color:var(--amber);color:var(--amber)}
 
-  /* DIVIDER */
-  .export-btns{ display:flex; gap:8px; margin-top:12px; }
-  .hint{ font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.5; }
-  .hint code{
-    font-family:'DM Mono',monospace;
-    background:var(--surface2);
-    border:1px solid var(--border);
-    border-radius:4px;
-    padding:1px 5px;
-    font-size:10.5px;
-  }
+  .hint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.6}
+  .hint code{font-family:'DM Mono',monospace;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px;font-size:10.5px}
+  .gh-link{font-size:12px;color:var(--accent);text-decoration:none;margin-left:auto;font-family:'DM Mono',monospace}
+  .gh-link:hover{text-decoration:underline}
+  .saving-overlay{position:fixed;inset:0;z-index:150;display:none;align-items:center;justify-content:center}
+  .saving-overlay.show{display:flex}
+  .saving-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 32px;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:12px}
+  .spin{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+  @keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
+<!-- ── SETUP MODAL ───────────────────────────────────────────── -->
+<div class="modal-bg" id="setupModal">
+  <div class="modal">
+    <h2>⚙️ GitHub Setup</h2>
+    <p>Your tasks will be saved as <strong>TXT files in your GitHub repository</strong>. Each month gets its own file: <code style="font-family:'DM Mono',monospace;font-size:12px">tasks_YYYY-MM.txt</code></p>
+    <ol>
+      <li>Create a <a href="https://github.com/new" target="_blank">new GitHub repository</a> (can be private)</li>
+      <li>Go to <a href="https://github.com/settings/tokens/new" target="_blank">Settings → Developer → Personal Access Tokens</a></li>
+      <li>Generate a <strong>Classic token</strong> with <code style="font-family:'DM Mono',monospace;font-size:12px">repo</code> scope checked</li>
+      <li>Paste the token and your repo details below</li>
+    </ol>
+    <div class="modal-field">
+      <label>GitHub Username</label>
+      <input type="text" id="cfgOwner" placeholder="your-username">
+    </div>
+    <div class="modal-field">
+      <label>Repository Name</label>
+      <input type="text" id="cfgRepo" placeholder="my-tasks">
+      <div class="modal-hint">The repo must already exist on GitHub</div>
+    </div>
+    <div class="modal-field">
+      <label>Branch</label>
+      <input type="text" id="cfgBranch" placeholder="main">
+      <div class="modal-hint">Usually <code>main</code> or <code>master</code></div>
+    </div>
+    <div class="modal-field">
+      <label>Personal Access Token</label>
+      <input type="password" id="cfgToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      <div class="modal-hint">Stored only in your browser's localStorage — never sent anywhere except GitHub</div>
+    </div>
+    <div class="modal-field">
+      <label>Folder (optional)</label>
+      <input type="text" id="cfgFolder" placeholder="tasks">
+      <div class="modal-hint">Leave blank to store in repo root, or e.g. <code>tasks</code> for <code>tasks/tasks_YYYY-MM.txt</code></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveConfig()">Save & Connect</button>
+      <button class="btn-ghost" id="cancelCfg" onclick="closeModal()" style="display:none">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SAVING OVERLAY ─────────────────────────────────────────── -->
+<div class="saving-overlay" id="savingOverlay">
+  <div class="saving-box">
+    <div class="spin"></div>
+    <span id="savingMsg">Committing to GitHub…</span>
+  </div>
+</div>
+
 <header>
   <div class="logo-icon">📋</div>
-  <div>
-    <div class="logo-text">Daily<span>Log</span></div>
-  </div>
-  <div class="header-right">
-    <div class="storage-info">Storage: <span id="storageCount">0</span> entries</div>
+  <div><div class="logo-text">Daily<span>Log</span></div></div>
+  <div class="hdr-right">
+    <div class="status-pill">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Not connected</span>
+    </div>
+    <button class="cfg-btn" onclick="openModal()">⚙ Config</button>
   </div>
 </header>
 
 <div class="main">
 
-  <!-- LEFT: Entry Form -->
+  <!-- LEFT: Form -->
   <div>
     <div class="panel">
       <div class="panel-header">
         <div class="panel-icon" style="background:rgba(92,110,248,.15)">✏️</div>
         <div class="panel-title">Add Daily Entry</div>
+        <a class="gh-link" id="repoLink" href="#" target="_blank" style="display:none">→ View Repo</a>
       </div>
       <div class="panel-body">
 
@@ -415,20 +224,15 @@
           <input type="text" id="taskEvent" placeholder="e.g. Sprint Planning, Client Call…">
         </div>
 
-        <!-- Leave Toggle -->
-        <div style="margin-bottom:6px">
-          <label style="margin-bottom:0">Day Type</label>
-        </div>
-        <label class="toggle-row" id="toggleRow" onclick="handleToggleClick()">
+        <div style="margin-bottom:6px"><label style="margin-bottom:0">Day Type</label></div>
+        <label class="toggle-row" id="toggleRow" onclick="handleToggle()">
           <input type="checkbox" id="leaveToggle">
           <div class="toggle-track"></div>
           <span class="toggle-label">Mark as Leave</span>
           <span class="toggle-sub" id="toggleSub">Working day</span>
         </label>
 
-        <div class="leave-banner" id="leaveBanner">
-          🏖️ Leave day — description not needed
-        </div>
+        <div class="leave-banner" id="leaveBanner">🏖️ Leave day — description not needed</div>
 
         <div id="descSection">
           <div class="field">
@@ -445,7 +249,7 @@
   <!-- RIGHT -->
   <div class="right-col">
 
-    <!-- Export Panel -->
+    <!-- Export -->
     <div class="panel">
       <div class="panel-header">
         <div class="panel-icon" style="background:rgba(61,220,132,.15)">📤</div>
@@ -459,28 +263,26 @@
           </div>
         </div>
         <div class="export-btns">
-          <button class="txt-btn" id="txtBtn" onclick="downloadTXT()">⬇ Download TXT</button>
-          <button class="export-btn" id="exportBtn" onclick="exportCSV()">⬇ Export CSV</button>
+          <button class="txt-btn" onclick="downloadTXT()">⬇ View TXT</button>
+          <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
         </div>
         <p class="hint">
-          TXT file saved as <code>tasks_YYYY-MM.txt</code> · CSV as <code>tasks_YYYY-MM.csv</code><br>
-          Data is read from the browser's local storage — no server needed.
+          TXT files are stored in your GitHub repo as <code>tasks_YYYY-MM.txt</code>.<br>
+          CSV is generated live from the GitHub file when you click Export.
         </p>
-
-        <!-- Stored month chips -->
         <div id="monthChips" class="month-files"></div>
       </div>
     </div>
 
-    <!-- Recent Entries -->
+    <!-- Recent -->
     <div class="panel">
       <div class="panel-header">
         <div class="panel-icon" style="background:rgba(248,92,138,.15)">🗂️</div>
         <div class="panel-title">Recent Entries</div>
-        <button onclick="renderRecent()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;">↺ Refresh</button>
+        <button onclick="loadRecent()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif">↺ Refresh</button>
       </div>
       <div class="panel-body">
-        <div id="recentList"><div class="loading-msg">Loading…</div></div>
+        <div id="recentList"><div class="empty-msg">Connect GitHub to see entries</div></div>
       </div>
     </div>
 
@@ -490,315 +292,381 @@
 <div id="toast"></div>
 
 <script>
-/* ═══════════════════════════════════════════════════════════════
-   STORAGE FORMAT
-   Key:   "tasks_YYYY-MM"   (one key per month)
-   Value: plain text, one entry per line, pipe-delimited:
-          DATE|EVENT|DESCRIPTION|LEAVE
-          2025-05-20|Sprint Planning|Completed auth module and fixed bugs|false
-          2025-05-21|Leave||true
-   ═══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   CONFIG — stored in localStorage (never sent anywhere but GitHub)
+   ══════════════════════════════════════════════════════════════ */
+let CFG = {};
 
-const SEP = '|';
-const NEWLINE = '\n';
+function loadConfig(){
+  try { CFG = JSON.parse(localStorage.getItem('dlCfg') || '{}'); } catch{ CFG = {}; }
+}
+function saveConfig(){
+  const owner  = document.getElementById('cfgOwner').value.trim();
+  const repo   = document.getElementById('cfgRepo').value.trim();
+  const branch = document.getElementById('cfgBranch').value.trim() || 'main';
+  const token  = document.getElementById('cfgToken').value.trim();
+  const folder = document.getElementById('cfgFolder').value.trim().replace(/^\/|\/$/g,'');
 
-/* ── Helpers ─────────────────────────────────────────────────── */
-function pad(n){ return String(n).padStart(2,'0'); }
+  if(!owner || !repo || !token){ showToast('Fill in username, repo and token','error'); return; }
 
-function todayStr(){
-  const n = new Date();
-  return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
+  CFG = { owner, repo, branch, token, folder };
+  localStorage.setItem('dlCfg', JSON.stringify(CFG));
+  closeModal();
+  applyConfig();
+  loadRecent();
+  loadMonthList();
 }
 
-function monthKey(dateStr){
-  // "YYYY-MM-DD" → "tasks_YYYY-MM"
-  return 'tasks_' + dateStr.slice(0,7);
+function applyConfig(){
+  const connected = !!(CFG.owner && CFG.repo && CFG.token);
+  document.getElementById('statusDot').className  = 'status-dot ' + (connected ? 'ok' : 'err');
+  document.getElementById('statusText').textContent = connected
+    ? `${CFG.owner}/${CFG.repo}`
+    : 'Not connected';
+  const link = document.getElementById('repoLink');
+  if(connected){
+    link.href = `https://github.com/${CFG.owner}/${CFG.repo}`;
+    link.style.display = '';
+  } else {
+    link.style.display = 'none';
+  }
 }
 
-function fmtDateLabel(dateStr){
-  const [y,m,d] = dateStr.split('-');
-  const dt = new Date(+y, +m-1, +d);
-  return dt.toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+function openModal(){
+  document.getElementById('cfgOwner').value  = CFG.owner  || '';
+  document.getElementById('cfgRepo').value   = CFG.repo   || '';
+  document.getElementById('cfgBranch').value = CFG.branch || 'main';
+  document.getElementById('cfgToken').value  = CFG.token  || '';
+  document.getElementById('cfgFolder').value = CFG.folder || '';
+  document.getElementById('cancelCfg').style.display = CFG.token ? '' : 'none';
+  document.getElementById('setupModal').classList.remove('hidden');
+}
+function closeModal(){
+  document.getElementById('setupModal').classList.add('hidden');
 }
 
-function dayName(dateStr){
-  const [y,m,d] = dateStr.split('-');
-  return new Date(+y,+m-1,+d).toLocaleDateString('en-IN',{weekday:'long'});
+/* ══════════════════════════════════════════════════════════════
+   GITHUB API HELPERS
+   ══════════════════════════════════════════════════════════════ */
+const GH = 'https://api.github.com';
+
+function ghPath(ym){
+  // returns the file path inside the repo e.g. "tasks/tasks_2025-05.txt"
+  const name = `tasks_${ym}.txt`;
+  return CFG.folder ? `${CFG.folder}/${name}` : name;
 }
 
-function monthLabel(ym){ // "YYYY-MM"
-  const [y,m] = ym.split('-');
-  return new Date(+y,+m-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+async function ghGet(ym){
+  // Returns { content (decoded string), sha } or null if file doesn't exist
+  const url = `${GH}/repos/${CFG.owner}/${CFG.repo}/contents/${ghPath(ym)}?ref=${CFG.branch}`;
+  const res  = await fetch(url, { headers: ghHeaders() });
+  if(res.status === 404) return null;
+  if(!res.ok) throw new Error(`GitHub GET failed: ${res.status} ${await res.text()}`);
+  const json = await res.json();
+  const text = decodeURIComponent(escape(atob(json.content.replace(/\n/g,''))));
+  return { content: text, sha: json.sha };
 }
 
-/* ── Parse / Serialize TXT ──────────────────────────────────── */
-function parseTxt(txt){
-  // Returns array of {date, event, description, isLeave}
-  return txt.split(NEWLINE)
-    .map(line => line.trim())
-    .filter(Boolean)
-    .map(line => {
-      const parts = line.split(SEP);
-      return {
-        date:        parts[0] || '',
-        event:       parts[1] || '',
-        description: parts[2] || '',
-        isLeave:     parts[3] === 'true'
-      };
-    })
-    .filter(e => e.date);
+async function ghPut(ym, content, sha, message){
+  // Creates or updates a file
+  const url  = `${GH}/repos/${CFG.owner}/${CFG.repo}/contents/${ghPath(ym)}`;
+  const body = {
+    message,
+    content: btoa(unescape(encodeURIComponent(content))),
+    branch:  CFG.branch
+  };
+  if(sha) body.sha = sha;
+  const res = await fetch(url, {
+    method:  'PUT',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body:    JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error(`GitHub PUT failed: ${res.status} ${await res.text()}`);
+  return res.json();
+}
+
+async function ghListFiles(){
+  // List all files in the folder (or root) to find existing month files
+  const folder = CFG.folder || '';
+  const url = `${GH}/repos/${CFG.owner}/${CFG.repo}/contents/${folder}?ref=${CFG.branch}`;
+  const res = await fetch(url, { headers: ghHeaders() });
+  if(res.status === 404) return [];
+  if(!res.ok) return [];
+  const json = await res.json();
+  return Array.isArray(json) ? json : [];
+}
+
+function ghHeaders(){
+  return {
+    'Authorization': `token ${CFG.token}`,
+    'Accept': 'application/vnd.github.v3+json'
+  };
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TXT FORMAT  (one line per entry, pipe-delimited)
+   DATE|EVENT|DESCRIPTION|LEAVE
+   ══════════════════════════════════════════════════════════════ */
+function parseTxt(raw){
+  return raw.split('\n').map(l=>l.trim()).filter(Boolean).map(line=>{
+    const p = line.split('|');
+    return { date:p[0]||'', event:p[1]||'', description:p[2]||'', isLeave:p[3]==='true' };
+  }).filter(e=>e.date);
 }
 
 function serializeTxt(entries){
-  return entries
-    .map(e => [
-      e.date,
-      e.event.replace(/[|\n]/g,' '),
-      e.description.replace(/[|\n]/g,' '),
-      String(e.isLeave)
-    ].join(SEP))
-    .join(NEWLINE);
+  return entries.map(e=>[
+    e.date,
+    (e.event||'').replace(/[|\n]/g,' '),
+    (e.description||'').replace(/[|\n]/g,' '),
+    String(e.isLeave)
+  ].join('|')).join('\n');
 }
 
-/* ── Get all entries for a month key ────────────────────────── */
-function getMonthEntries(key){
-  const raw = localStorage.getItem(key);
-  if(!raw) return [];
-  return parseTxt(raw);
+/* ══════════════════════════════════════════════════════════════
+   HELPERS
+   ══════════════════════════════════════════════════════════════ */
+function pad(n){ return String(n).padStart(2,'0'); }
+function todayStr(){ const n=new Date(); return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`; }
+function ym(dateStr){ return dateStr.slice(0,7); }
+function fmtDate(d){ const[y,m,dd]=d.split('-'); return new Date(+y,+m-1,+dd).toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}); }
+function dayName(d){ const[y,m,dd]=d.split('-'); return new Date(+y,+m-1,+dd).toLocaleDateString('en-IN',{weekday:'long'}); }
+function monthLabel(ymStr){ const[y,m]=ymStr.split('-'); return new Date(+y,+m-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'}); }
+
+function showOverlay(msg){ document.getElementById('savingMsg').textContent=msg; document.getElementById('savingOverlay').classList.add('show'); }
+function hideOverlay(){ document.getElementById('savingOverlay').classList.remove('show'); }
+
+let _tt;
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`show ${type}`;
+  clearTimeout(_tt); _tt=setTimeout(()=>{ t.className=''; },3400);
 }
 
-/* ── Save one entry ─────────────────────────────────────────── */
-function saveEntry(entry){
-  const key = monthKey(entry.date);
-  const entries = getMonthEntries(key);
+/* ══════════════════════════════════════════════════════════════
+   SAVE TASK → GitHub
+   ══════════════════════════════════════════════════════════════ */
+async function saveTask(){
+  if(!CFG.token){ openModal(); return; }
 
-  // Remove duplicate for same date+event combo (overwrite)
-  const idx = entries.findIndex(e => e.date === entry.date && e.event === entry.event);
-  if(idx >= 0) entries[idx] = entry;
-  else entries.push(entry);
-
-  // Sort by date
-  entries.sort((a,b) => a.date.localeCompare(b.date));
-  localStorage.setItem(key, serializeTxt(entries));
-}
-
-/* ── All stored month keys ──────────────────────────────────── */
-function getAllMonthKeys(){
-  return Object.keys(localStorage)
-    .filter(k => k.startsWith('tasks_'))
-    .sort();
-}
-
-/* ── Total entry count ──────────────────────────────────────── */
-function totalCount(){
-  return getAllMonthKeys().reduce((acc,k) => acc + getMonthEntries(k).length, 0);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   UI
-   ═══════════════════════════════════════════════════════════════ */
-
-/* Leave Toggle */
-function handleToggleClick(){
-  const cb = document.getElementById('leaveToggle');
-  // The label click fires before checkbox changes, so flip manually
-  cb.checked = !cb.checked;
-  applyToggleState();
-}
-function applyToggleState(){
-  const cb   = document.getElementById('leaveToggle');
-  const row  = document.getElementById('toggleRow');
-  const sec  = document.getElementById('descSection');
-  const sub  = document.getElementById('toggleSub');
-  const ban  = document.getElementById('leaveBanner');
-  const on   = cb.checked;
-  row.classList.toggle('active', on);
-  sec.classList.toggle('hidden', on);
-  ban.classList.toggle('show',   on);
-  sub.textContent = on ? 'Leave day' : 'Working day';
-}
-
-/* Toast */
-let _toastTimer;
-function showToast(msg, type='success'){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `show ${type}`;
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(()=>{ t.className=''; }, 3200);
-}
-
-/* ── Save Task ──────────────────────────────────────────────── */
-function saveTask(){
   const date    = document.getElementById('taskDate').value;
   const isLeave = document.getElementById('leaveToggle').checked;
   const desc    = isLeave ? '' : document.getElementById('taskDesc').value.trim();
   const event   = document.getElementById('taskEvent').value.trim() || (isLeave ? 'Leave' : 'Task');
 
-  if(!date){ showToast('Please pick a date','error'); return; }
+  if(!date){ showToast('Pick a date','error'); return; }
   if(!isLeave && !desc){ showToast('Enter a description','error'); return; }
 
   const btn = document.getElementById('saveBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
+  showOverlay('Reading existing file from GitHub…');
 
   try {
-    saveEntry({ date, event, description: desc, isLeave });
-    showToast('✓ Entry saved to ' + monthKey(date).replace('tasks_','') + '.txt', 'success');
-    // Reset form
+    const month = ym(date);
+    const file  = await ghGet(month);   // null = new file
+    const entries = file ? parseTxt(file.content) : [];
+    const sha     = file ? file.sha : null;
+
+    // Remove duplicate for same date+event, then add
+    const idx = entries.findIndex(e => e.date===date && e.event===event);
+    const entry = { date, event, description: desc, isLeave };
+    if(idx >= 0) entries[idx] = entry;
+    else entries.push(entry);
+    entries.sort((a,b) => a.date.localeCompare(b.date));
+
+    const newContent = serializeTxt(entries);
+    const commitMsg  = isLeave
+      ? `Leave: ${date}`
+      : `Task (${date}): ${event}`;
+
+    showOverlay('Committing to GitHub…');
+    await ghPut(month, newContent, sha, commitMsg);
+
+    showToast(`✓ Saved to tasks_${month}.txt on GitHub`, 'success');
     document.getElementById('taskEvent').value = '';
     document.getElementById('taskDesc').value  = '';
     document.getElementById('leaveToggle').checked = false;
     applyToggleState();
-    updateUI();
+    loadRecent();
+    loadMonthList();
   } catch(e){
     console.error(e);
-    showToast('Save failed: ' + e.message, 'error');
+    showToast('GitHub error: ' + e.message, 'error');
   } finally {
-    btn.disabled = false; btn.textContent = 'Save Entry';
+    btn.disabled=false; btn.textContent='Save Entry';
+    hideOverlay();
   }
 }
 
-/* ── Render recent entries (latest 12) ──────────────────────── */
-function renderRecent(){
+/* ══════════════════════════════════════════════════════════════
+   DOWNLOAD TXT (open raw file in new tab from GitHub)
+   ══════════════════════════════════════════════════════════════ */
+async function downloadTXT(){
+  if(!CFG.token){ openModal(); return; }
+  const monthVal = document.getElementById('exportMonth').value;
+  if(!monthVal){ showToast('Select a month','error'); return; }
+
+  showOverlay('Fetching from GitHub…');
+  try {
+    const file = await ghGet(monthVal);
+    if(!file){ showToast('No data found for ' + monthLabel(monthVal),'error'); return; }
+
+    const entries = parseTxt(file.content);
+    const lines   = [];
+    lines.push(`TASK LOG — ${monthLabel(monthVal).toUpperCase()}`);
+    lines.push('='.repeat(52));
+    lines.push('');
+    for(const e of entries){
+      lines.push(`DATE        : ${e.date}  (${dayName(e.date)})`);
+      lines.push(`EVENT       : ${e.event}`);
+      lines.push(`TYPE        : ${e.isLeave ? 'LEAVE' : 'WORK'}`);
+      if(!e.isLeave) lines.push(`DESCRIPTION : ${e.description}`);
+      lines.push('-'.repeat(52));
+    }
+    lines.push('');
+    lines.push(`Total entries : ${entries.length}`);
+    lines.push(`GitHub file   : ${ghPath(monthVal)}`);
+    lines.push(`Repo          : ${CFG.owner}/${CFG.repo}`);
+    lines.push(`Downloaded on : ${new Date().toLocaleString('en-IN')}`);
+
+    const blob = new Blob([lines.join('\n')],{type:'text/plain'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `tasks_${monthVal}.txt`; a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Downloaded tasks_${monthVal}.txt (${entries.length} entries)`,'success');
+  } catch(e){
+    showToast('Error: ' + e.message,'error');
+  } finally { hideOverlay(); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EXPORT CSV (from GitHub TXT)
+   ══════════════════════════════════════════════════════════════ */
+async function exportCSV(){
+  if(!CFG.token){ openModal(); return; }
+  const monthVal = document.getElementById('exportMonth').value;
+  if(!monthVal){ showToast('Select a month','error'); return; }
+
+  showOverlay('Building CSV from GitHub…');
+  try {
+    const file = await ghGet(monthVal);
+    if(!file){ showToast('No data found for ' + monthLabel(monthVal),'error'); return; }
+
+    const entries = parseTxt(file.content);
+    const rows    = [['Date','Day','Event / Title','Description','Leave']];
+    for(const e of entries){
+      rows.push([e.date, dayName(e.date), e.event, e.isLeave ? 'LEAVE' : e.description, e.isLeave ? 'Yes' : 'No']);
+    }
+
+    const csv  = rows.map(r => r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    const blob = new Blob([csv],{type:'text/csv'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `tasks_${monthVal}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Exported ${entries.length} rows as CSV`,'success');
+  } catch(e){
+    showToast('Error: ' + e.message,'error');
+  } finally { hideOverlay(); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LOAD RECENT ENTRIES (current month + previous)
+   ══════════════════════════════════════════════════════════════ */
+async function loadRecent(){
+  if(!CFG.token){ return; }
   const list = document.getElementById('recentList');
-  const keys = getAllMonthKeys().reverse(); // newest month first
-  let all = [];
-  for(const k of keys){
-    const entries = getMonthEntries(k).slice().reverse();
-    all = all.concat(entries);
-    if(all.length >= 12) break;
-  }
-  all = all.slice(0,12);
+  list.innerHTML = '<div class="loading-msg">Loading from GitHub…</div>';
 
-  if(!all.length){
-    list.innerHTML = '<div class="empty-msg">No entries yet — add your first task!</div>';
-    return;
+  try {
+    const now   = new Date();
+    const months = [
+      `${now.getFullYear()}-${pad(now.getMonth()+1)}`,
+      `${now.getFullYear()}-${pad(now.getMonth())}` // prev month
+    ].filter(Boolean);
+
+    let all = [];
+    for(const m of months){
+      const file = await ghGet(m);
+      if(file) all = all.concat(parseTxt(file.content));
+    }
+    all.sort((a,b) => b.date.localeCompare(a.date));
+    all = all.slice(0,12);
+
+    if(!all.length){ list.innerHTML='<div class="empty-msg">No entries yet — add your first task!</div>'; return; }
+    list.innerHTML = all.map(buildCard).join('');
+  } catch(e){
+    list.innerHTML = `<div class="empty-msg">Error loading: ${e.message}</div>`;
   }
-  list.innerHTML = all.map(buildCard).join('');
 }
 
+/* ══════════════════════════════════════════════════════════════
+   MONTH LIST CHIPS
+   ══════════════════════════════════════════════════════════════ */
+async function loadMonthList(){
+  if(!CFG.token) return;
+  try {
+    const files = await ghListFiles();
+    const txts  = files.filter(f => f.name.startsWith('tasks_') && f.name.endsWith('.txt'));
+    const wrap  = document.getElementById('monthChips');
+    if(!txts.length){ wrap.innerHTML=''; return; }
+
+    // Show chips — we can't know count without fetching each, so just show file names
+    wrap.innerHTML = txts.reverse().map(f=>{
+      const ym = f.name.replace('tasks_','').replace('.txt','');
+      return `<a href="${f.html_url}" target="_blank" class="month-chip" style="text-decoration:none;cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">${monthLabel(ym)} <span class="chip-count">↗</span></a>`;
+    }).join('');
+  } catch(e){ /* silent */ }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CARD BUILDER
+   ══════════════════════════════════════════════════════════════ */
 function buildCard(e){
-  const badge = e.isLeave
-    ? '<span class="badge leave-badge">LEAVE</span>'
-    : '<span class="badge work-badge">WORK</span>';
-  const descHtml = e.isLeave
+  const badge = e.isLeave ? '<span class="badge leave-badge">LEAVE</span>' : '<span class="badge work-badge">WORK</span>';
+  const desc  = e.isLeave
     ? '<p class="card-desc leave-note">🏖️ Day off — no task logged.</p>'
     : `<p class="card-desc">${e.description.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</p>`;
-  return `
-    <div class="task-card ${e.isLeave?'card-leave':''}">
-      <div class="card-top">
-        <span class="card-date">${fmtDateLabel(e.date)}</span>
-        ${badge}
-      </div>
-      <p class="card-event">${e.event.replace(/</g,'&lt;')}</p>
-      ${descHtml}
-    </div>`;
+  return `<div class="task-card ${e.isLeave?'card-leave':''}">
+    <div class="card-top"><span class="card-date">${fmtDate(e.date)}</span>${badge}</div>
+    <p class="card-event">${e.event.replace(/</g,'&lt;')}</p>${desc}</div>`;
 }
 
-/* ── Month chips ────────────────────────────────────────────── */
-function renderChips(){
-  const wrap = document.getElementById('monthChips');
-  const keys = getAllMonthKeys();
-  if(!keys.length){ wrap.innerHTML=''; return; }
-  wrap.innerHTML = keys.reverse().map(k => {
-    const ym = k.replace('tasks_','');
-    const cnt = getMonthEntries(k).length;
-    return `<div class="month-chip">${monthLabel(ym)} <span class="chip-count">${cnt}</span></div>`;
-  }).join('');
+/* ══════════════════════════════════════════════════════════════
+   TOGGLE
+   ══════════════════════════════════════════════════════════════ */
+function handleToggle(){
+  const cb = document.getElementById('leaveToggle');
+  cb.checked = !cb.checked;
+  applyToggleState();
+}
+function applyToggleState(){
+  const on = document.getElementById('leaveToggle').checked;
+  document.getElementById('toggleRow').classList.toggle('active',on);
+  document.getElementById('descSection').classList.toggle('hidden',on);
+  document.getElementById('leaveBanner').classList.toggle('show',on);
+  document.getElementById('toggleSub').textContent = on ? 'Leave day' : 'Working day';
 }
 
-/* ── Storage count in header ────────────────────────────────── */
-function updateStorageCount(){
-  document.getElementById('storageCount').textContent = totalCount();
-}
-
-/* ── Unified UI refresh ─────────────────────────────────────── */
-function updateUI(){
-  renderRecent();
-  renderChips();
-  updateStorageCount();
-}
-
-/* ── Download TXT ───────────────────────────────────────────── */
-function downloadTXT(){
-  const monthVal = document.getElementById('exportMonth').value;
-  if(!monthVal){ showToast('Select a month first','error'); return; }
-
-  const key  = 'tasks_' + monthVal;
-  const raw  = localStorage.getItem(key);
-  if(!raw || !raw.trim()){ showToast('No data for ' + monthLabel(monthVal),'error'); return; }
-
-  // Build a human-readable TXT
-  const entries = parseTxt(raw);
-  const lines   = [];
-  lines.push(`TASK LOG — ${monthLabel(monthVal).toUpperCase()}`);
-  lines.push('='.repeat(50));
-  lines.push('');
-  for(const e of entries){
-    lines.push(`DATE        : ${e.date}  (${dayName(e.date)})`);
-    lines.push(`EVENT       : ${e.event}`);
-    if(e.isLeave){
-      lines.push(`TYPE        : LEAVE`);
-    } else {
-      lines.push(`TYPE        : WORK`);
-      lines.push(`DESCRIPTION : ${e.description}`);
-    }
-    lines.push('-'.repeat(50));
-  }
-  lines.push('');
-  lines.push(`Total entries: ${entries.length}`);
-  lines.push(`Exported on : ${new Date().toLocaleString('en-IN')}`);
-
-  const blob = new Blob([lines.join('\n')], {type:'text/plain'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = `tasks_${monthVal}.txt`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast(`Downloaded tasks_${monthVal}.txt (${entries.length} entries)`,'success');
-}
-
-/* ── Export CSV ─────────────────────────────────────────────── */
-function exportCSV(){
-  const monthVal = document.getElementById('exportMonth').value;
-  if(!monthVal){ showToast('Select a month first','error'); return; }
-
-  const key  = 'tasks_' + monthVal;
-  const raw  = localStorage.getItem(key);
-  if(!raw || !raw.trim()){ showToast('No data for ' + monthLabel(monthVal),'error'); return; }
-
-  const entries = parseTxt(raw);
-  const rows = [['Date','Day','Event / Title','Description','Leave']];
-  for(const e of entries){
-    rows.push([
-      e.date,
-      dayName(e.date),
-      e.event,
-      e.isLeave ? 'LEAVE' : e.description,
-      e.isLeave ? 'Yes' : 'No'
-    ]);
-  }
-
-  const csv  = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
-  const blob = new Blob([csv], {type:'text/csv'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = `tasks_${monthVal}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast(`Exported ${entries.length} rows as CSV`,'success');
-}
-
-/* ── Init ───────────────────────────────────────────────────── */
-window.addEventListener('DOMContentLoaded', () => {
+/* ══════════════════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', ()=>{
+  loadConfig();
   document.getElementById('taskDate').value = todayStr();
   const now = new Date();
   document.getElementById('exportMonth').value = `${now.getFullYear()}-${pad(now.getMonth()+1)}`;
-  updateUI();
+
+  if(!CFG.token){
+    openModal();
+  } else {
+    closeModal();
+    applyConfig();
+    loadRecent();
+    loadMonthList();
+  }
 });
 </script>
-
 </body>
 </html>
