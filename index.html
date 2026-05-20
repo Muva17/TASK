@@ -1,520 +1,409 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DailyLog — Task Manager</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
-:root{
-  --bg:#0d0f14;
-  --surface:#151820;
-  --surface2:#1c2030;
-  --border:#252a3a;
-  --accent:#5c6ef8;
-  --accent2:#f85c8a;
-  --green:#3ddc84;
-  --amber:#f8b84a;
-  --text:#e8eaf2;
-  --muted:#7d86a8;
-  --radius:14px;
-  --radius2:10px;
-}
+  :root{
+    --bg:       #0d0f14;
+    --surface:  #151820;
+    --surface2: #1c2030;
+    --border:   #252a3a;
+    --accent:   #5c6ef8;
+    --accent2:  #f85c8a;
+    --green:    #3ddc84;
+    --amber:    #f8b84a;
+    --text:     #e8eaf2;
+    --muted:    #6b7394;
+    --card-r:   14px;
+    --r:        10px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
-body{
-  background:var(--bg);
-  color:var(--text);
-  font-family:'DM Sans',sans-serif;
-  min-height:100vh;
-}
-
-/* HEADER */
-
-header{
-  position:sticky;
-  top:0;
-  z-index:100;
-  background:rgba(21,24,32,.92);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid var(--border);
-  padding:18px 28px;
-
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
-
-.logo-icon{
-  width:42px;
-  height:42px;
-  border-radius:12px;
-  background:linear-gradient(135deg,var(--accent),#7585ff);
-
-  display:grid;
-  place-items:center;
-  font-size:18px;
-}
-
-.logo-title{
-  font-family:'Syne',sans-serif;
-  font-weight:800;
-  font-size:22px;
-}
-
-.logo-title span{
-  color:var(--accent);
-}
-
-.header-sub{
-  margin-left:auto;
-  font-family:'DM Mono',monospace;
-  font-size:11px;
-  color:var(--muted);
-  letter-spacing:.08em;
-}
-
-/* LAYOUT */
-
-.main{
-  max-width:1200px;
-  margin:auto;
-  padding:30px 20px;
-
-  display:grid;
-  grid-template-columns:400px 1fr;
-  gap:24px;
-}
-
-@media(max-width:850px){
-  .main{
-    grid-template-columns:1fr;
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    line-height: 1.6;
   }
 
+  /* HEADER */
   header{
-    padding:16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
-}
-
-/* PANEL */
-
-.panel{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  overflow:hidden;
-}
-
-.panel-header{
-  padding:18px 20px;
-  border-bottom:1px solid var(--border);
-
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-.panel-icon{
-  width:34px;
-  height:34px;
-  border-radius:10px;
-
-  display:grid;
-  place-items:center;
-}
-
-.panel-title{
-  font-family:'Syne',sans-serif;
-  font-weight:700;
-  font-size:16px;
-}
-
-.panel-body{
-  padding:20px;
-}
-
-/* FORM */
-
-.field{
-  margin-bottom:18px;
-}
-
-label{
-  display:block;
-  margin-bottom:8px;
-
-  font-size:11px;
-  font-family:'DM Mono',monospace;
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:.08em;
-}
-
-input,
-textarea{
-  width:100%;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:var(--radius2);
-
-  color:var(--text);
-
-  padding:12px 14px;
-  font-size:14px;
-
-  outline:none;
-  transition:.2s;
-}
-
-input:focus,
-textarea:focus{
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px rgba(92,110,248,.15);
-}
-
-textarea{
-  resize:vertical;
-  min-height:110px;
-}
-
-input::-webkit-calendar-picker-indicator{
-  filter:invert(.8);
-  cursor:pointer;
-}
-
-/* TOGGLE */
-
-.toggle-row{
-  display:flex;
-  align-items:center;
-  gap:12px;
-
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:var(--radius2);
-
-  padding:14px;
-  cursor:pointer;
-  margin-bottom:18px;
-}
-
-.toggle-row input{
-  display:none;
-}
-
-.toggle-track{
-  width:44px;
-  height:24px;
-  border-radius:20px;
-  background:#2c3144;
-  position:relative;
-  transition:.25s;
-}
-
-.toggle-track::after{
-  content:'';
-  position:absolute;
-  top:3px;
-  left:3px;
-
-  width:18px;
-  height:18px;
-  border-radius:50%;
-  background:#fff;
-
-  transition:.25s;
-}
-
-.toggle-row.active .toggle-track{
-  background:var(--accent2);
-}
-
-.toggle-row.active .toggle-track::after{
-  left:23px;
-}
-
-.toggle-sub{
-  margin-left:auto;
-  font-size:12px;
-  color:var(--muted);
-}
-
-/* LEAVE */
-
-.leave-banner{
-  display:none;
-
-  margin-bottom:18px;
-
-  padding:14px;
-  border-radius:var(--radius2);
-
-  background:rgba(248,92,138,.08);
-  border:1px solid rgba(248,92,138,.3);
-
-  color:var(--accent2);
-  font-size:13px;
-}
-
-.leave-banner.show{
-  display:block;
-}
-
-.hidden{
-  display:none;
-}
-
-/* BUTTON */
-
-.save-btn,
-.export-btn{
-  border:none;
-  cursor:pointer;
-  transition:.2s;
-}
-
-.save-btn{
-  width:100%;
-  padding:14px;
-
-  border-radius:var(--radius2);
-
-  background:var(--accent);
-  color:#fff;
-
-  font-family:'Syne',sans-serif;
-  font-weight:700;
-  font-size:15px;
-}
-
-.save-btn:hover{
-  transform:translateY(-2px);
-  box-shadow:0 10px 25px rgba(92,110,248,.3);
-}
-
-.export-btn{
-  height:45px;
-  padding:0 20px;
-
-  background:transparent;
-  color:var(--accent);
-
-  border:1px solid var(--accent);
-  border-radius:var(--radius2);
-
-  font-family:'Syne',sans-serif;
-  font-weight:700;
-}
-
-.export-btn:hover{
-  background:var(--accent);
-  color:#fff;
-}
-
-/* EXPORT */
-
-.export-row{
-  display:flex;
-  gap:10px;
-  align-items:flex-end;
-}
-
-.export-row .field{
-  flex:1;
-  margin:0;
-}
-
-/* TASK CARDS */
-
-.right-col{
-  display:flex;
-  flex-direction:column;
-  gap:20px;
-}
-
-#recentList{
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-
-.task-card{
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-
-  padding:16px;
-
-  transition:.2s;
-}
-
-.task-card:hover{
-  transform:translateY(-2px);
-  border-color:var(--accent);
-}
-
-.card-leave{
-  border-color:rgba(248,92,138,.3);
-}
-
-.card-top{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-bottom:10px;
-}
-
-.card-date{
-  font-size:11px;
-  font-family:'DM Mono',monospace;
-  color:var(--muted);
-}
-
-.badge{
-  margin-left:auto;
-
-  padding:3px 10px;
-  border-radius:20px;
-
-  font-size:10px;
-  font-family:'DM Mono',monospace;
-  letter-spacing:.08em;
-}
-
-.work-badge{
-  background:rgba(61,220,132,.12);
-  color:var(--green);
-}
-
-.leave-badge{
-  background:rgba(248,92,138,.12);
-  color:var(--accent2);
-}
-
-.card-event{
-  font-family:'Syne',sans-serif;
-  font-size:16px;
-  font-weight:700;
-  margin-bottom:8px;
-}
-
-.card-desc{
-  font-size:13px;
-  line-height:1.6;
-  color:#a5aecb;
-}
-
-.loading-msg,
-.empty-msg{
-  text-align:center;
-  color:var(--muted);
-  padding:20px 0;
-  font-size:13px;
-}
-
-/* TOAST */
-
-#toast{
-  position:fixed;
-  left:50%;
-  bottom:30px;
-
-  transform:translateX(-50%) translateY(80px);
-
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:50px;
-
-  padding:12px 20px;
-
-  opacity:0;
-  transition:.3s;
-}
-
-#toast.show{
-  transform:translateX(-50%) translateY(0);
-  opacity:1;
-}
-
-#toast.success{
-  color:var(--green);
-  border-color:var(--green);
-}
-
-#toast.error{
-  color:var(--accent2);
-  border-color:var(--accent2);
-}
-
-/* NOTE */
-
-.firebase-note{
-  margin-bottom:18px;
-
-  padding:14px;
-  border-radius:var(--radius2);
-
-  background:rgba(248,184,74,.08);
-  border:1px solid rgba(248,184,74,.25);
-
-  color:var(--amber);
-  font-size:12px;
-  line-height:1.6;
-}
-
-.firebase-note code{
-  background:rgba(248,184,74,.15);
-  padding:2px 6px;
-  border-radius:4px;
-}
+  .logo-icon{
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+  .logo-text{
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+  }
+  .logo-text span{ color: var(--accent); }
+  .header-right{
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .storage-info{
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+  }
+  .storage-info span{ color: var(--green); font-weight: 500; }
+
+  /* LAYOUT */
+  .main{
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 28px 24px;
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  @media(max-width:800px){
+    .main{ grid-template-columns: 1fr; padding: 16px; }
+    header{ padding: 12px 16px; }
+  }
+
+  /* PANELS */
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    overflow: hidden;
+  }
+  .panel-header{
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-icon{
+    width: 28px; height: 28px;
+    border-radius: 7px;
+    display: grid; place-items: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .panel-title{
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .panel-body{ padding: 18px; }
+
+  /* FORM */
+  .field{ margin-bottom: 14px; }
+  label{
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  input[type="date"],
+  input[type="text"],
+  input[type="month"],
+  textarea,
+  select{
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--r);
+    padding: 10px 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input:focus, textarea:focus, select:focus{
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(92,110,248,.13);
+  }
+  textarea{ resize: vertical; min-height: 108px; }
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="month"]::-webkit-calendar-picker-indicator{
+    filter: invert(0.65); cursor: pointer;
+  }
+
+  /* LEAVE TOGGLE */
+  .toggle-row{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    padding: 11px 13px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    cursor: pointer;
+    user-select: none;
+    transition: border-color .2s;
+  }
+  .toggle-row:hover{ border-color: var(--accent2); }
+  .toggle-row input[type="checkbox"]{ display:none; }
+  .toggle-track{
+    width: 40px; height: 22px;
+    background: var(--border);
+    border-radius: 11px;
+    position: relative;
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  .toggle-track::after{
+    content:'';
+    position: absolute;
+    left: 3px; top: 3px;
+    width: 16px; height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    transition: left .2s;
+  }
+  .toggle-row.active .toggle-track{ background: var(--accent2); }
+  .toggle-row.active .toggle-track::after{ left: 21px; }
+  .toggle-label{ font-weight: 500; font-size: 14px; }
+  .toggle-sub{ font-size: 11px; color: var(--muted); margin-left: auto; }
+
+  #descSection.hidden{ display: none; }
+
+  .leave-banner{
+    display: none;
+    background: linear-gradient(135deg, rgba(248,92,138,.1), rgba(248,92,138,.04));
+    border: 1px solid rgba(248,92,138,.3);
+    border-radius: var(--r);
+    padding: 12px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--accent2);
+    margin-bottom: 14px;
+  }
+  .leave-banner.show{ display: block; }
+
+  /* SAVE BTN */
+  .save-btn{
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--r);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s, opacity .2s;
+  }
+  .save-btn:hover:not(:disabled){ transform: translateY(-2px); box-shadow: 0 8px 24px rgba(92,110,248,.35); }
+  .save-btn:active:not(:disabled){ transform: translateY(0); }
+  .save-btn:disabled{ opacity: .5; cursor: not-allowed; }
+
+  /* RIGHT COL */
+  .right-col{ display: flex; flex-direction: column; gap: 20px; }
+
+  /* EXPORT PANEL */
+  .export-row{ display: flex; gap: 10px; align-items: flex-end; }
+  .export-row .field{ flex:1; margin:0; }
+  .export-btn{
+    padding: 10px 16px;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: var(--r);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s, color .2s;
+    height: 42px;
+  }
+  .export-btn:hover:not(:disabled){ background: var(--accent); color: #fff; }
+  .export-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+  .txt-btn{
+    padding: 10px 16px;
+    background: transparent;
+    border: 1px solid var(--green);
+    color: var(--green);
+    border-radius: var(--r);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s, color .2s;
+    height: 42px;
+  }
+  .txt-btn:hover:not(:disabled){ background: var(--green); color: #000; }
+  .txt-btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+  /* MONTH FILES LIST */
+  .month-files{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .month-chip{
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .month-chip .chip-count{
+    background: var(--accent);
+    color: #fff;
+    border-radius: 10px;
+    padding: 0 6px;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  /* RECENT CARDS */
+  #recentList{ display: flex; flex-direction: column; gap: 10px; }
+  .loading-msg, .empty-msg{
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 24px 0;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .task-card{
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--card-r);
+    padding: 14px 16px;
+    transition: border-color .2s, transform .15s;
+    animation: slideUp .3s ease both;
+  }
+  .task-card:hover{ border-color: var(--accent); transform: translateY(-1px); }
+  .task-card.card-leave{
+    border-color: rgba(248,92,138,.25);
+    background: linear-gradient(135deg, rgba(248,92,138,.05), var(--surface2));
+  }
+  @keyframes slideUp{
+    from{ opacity:0; transform: translateY(10px); }
+    to  { opacity:1; transform: translateY(0); }
+  }
+
+  .card-top{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .card-date{
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .badge{
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    margin-left: auto;
+  }
+  .work-badge{ background: rgba(61,220,132,.13); color: var(--green); border: 1px solid rgba(61,220,132,.3); }
+  .leave-badge{ background: rgba(248,92,138,.13); color: var(--accent2); border: 1px solid rgba(248,92,138,.3); }
+  .card-event{
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .card-desc{ font-size: 13px; color: #9aa0bc; line-height: 1.5; }
+  .card-desc.leave-note{ color: var(--accent2); font-style: italic; }
+
+  /* TOAST */
+  #toast{
+    position: fixed;
+    bottom: 26px; left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 999;
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+    opacity: 0;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #toast.show{ transform: translateX(-50%) translateY(0); opacity: 1; }
+  #toast.success{ border-color: var(--green); color: var(--green); }
+  #toast.error  { border-color: var(--accent2); color: var(--accent2); }
+
+  /* DIVIDER */
+  .export-btns{ display:flex; gap:8px; margin-top:12px; }
+  .hint{ font-size:11.5px; color:var(--muted); margin-top:8px; line-height:1.5; }
+  .hint code{
+    font-family:'DM Mono',monospace;
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:1px 5px;
+    font-size:10.5px;
+  }
 </style>
 </head>
-
 <body>
 
 <header>
   <div class="logo-icon">📋</div>
-
-  <div class="logo-title">
-    Daily<span>Log</span>
+  <div>
+    <div class="logo-text">Daily<span>Log</span></div>
   </div>
-
-  <div class="header-sub">
-    TASK MANAGER
+  <div class="header-right">
+    <div class="storage-info">Storage: <span id="storageCount">0</span> entries</div>
   </div>
 </header>
 
 <div class="main">
 
-  <!-- LEFT -->
-
-  <div class="panel">
-
-    <div class="panel-header">
-      <div class="panel-icon" style="background:rgba(92,110,248,.15)">
-        ✏️
+  <!-- LEFT: Entry Form -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:rgba(92,110,248,.15)">✏️</div>
+        <div class="panel-title">Add Daily Entry</div>
       </div>
-
-      <div class="panel-title">
-        Add Daily Entry
-      </div>
-    </div>
-
-    <div class="panel-body">
-
-      <div class="firebase-note">
-        Replace the <code>firebaseConfig</code> values with your Firebase project credentials.
-      </div>
-
-      <form id="taskForm">
+      <div class="panel-body">
 
         <div class="field">
           <label>Date</label>
@@ -523,513 +412,392 @@ input::-webkit-calendar-picker-indicator{
 
         <div class="field">
           <label>Event / Task Title</label>
-          <input type="text" id="taskEvent" placeholder="Sprint Planning, Client Call...">
+          <input type="text" id="taskEvent" placeholder="e.g. Sprint Planning, Client Call…">
         </div>
 
-        <label>Day Type</label>
-
-        <label class="toggle-row" id="toggleRow">
-
+        <!-- Leave Toggle -->
+        <div style="margin-bottom:6px">
+          <label style="margin-bottom:0">Day Type</label>
+        </div>
+        <label class="toggle-row" id="toggleRow" onclick="handleToggleClick()">
           <input type="checkbox" id="leaveToggle">
-
           <div class="toggle-track"></div>
-
-          <span>Mark as Leave</span>
-
-          <span class="toggle-sub" id="toggleSub">
-            Working day
-          </span>
-
+          <span class="toggle-label">Mark as Leave</span>
+          <span class="toggle-sub" id="toggleSub">Working day</span>
         </label>
 
         <div class="leave-banner" id="leaveBanner">
-          🏖️ Leave day — no description required
+          🏖️ Leave day — description not needed
         </div>
 
         <div id="descSection">
-
           <div class="field">
             <label>Description / Work Done</label>
-
-            <textarea id="taskDesc" placeholder="Describe your work..."></textarea>
+            <textarea id="taskDesc" placeholder="Describe what you worked on today…"></textarea>
           </div>
-
         </div>
 
-        <button type="submit" class="save-btn" id="saveBtn">
-          Save Entry
-        </button>
-
-      </form>
-
+        <button class="save-btn" id="saveBtn" onclick="saveTask()">Save Entry</button>
+      </div>
     </div>
   </div>
 
   <!-- RIGHT -->
-
   <div class="right-col">
 
-    <!-- EXPORT -->
-
+    <!-- Export Panel -->
     <div class="panel">
-
       <div class="panel-header">
-        <div class="panel-icon" style="background:rgba(61,220,132,.15)">
-          📤
-        </div>
-
-        <div class="panel-title">
-          Export Monthly CSV
-        </div>
+        <div class="panel-icon" style="background:rgba(61,220,132,.15)">📤</div>
+        <div class="panel-title">Export Data</div>
       </div>
-
       <div class="panel-body">
-
         <div class="export-row">
-
           <div class="field">
             <label>Select Month</label>
             <input type="month" id="exportMonth">
           </div>
-
-          <button class="export-btn" id="exportBtn">
-            Export
-          </button>
-
         </div>
+        <div class="export-btns">
+          <button class="txt-btn" id="txtBtn" onclick="downloadTXT()">⬇ Download TXT</button>
+          <button class="export-btn" id="exportBtn" onclick="exportCSV()">⬇ Export CSV</button>
+        </div>
+        <p class="hint">
+          TXT file saved as <code>tasks_YYYY-MM.txt</code> · CSV as <code>tasks_YYYY-MM.csv</code><br>
+          Data is read from the browser's local storage — no server needed.
+        </p>
 
+        <!-- Stored month chips -->
+        <div id="monthChips" class="month-files"></div>
       </div>
-
     </div>
 
-    <!-- RECENT -->
-
+    <!-- Recent Entries -->
     <div class="panel">
-
       <div class="panel-header">
-
-        <div class="panel-icon" style="background:rgba(248,92,138,.15)">
-          🗂️
-        </div>
-
-        <div class="panel-title">
-          Recent Entries
-        </div>
-
+        <div class="panel-icon" style="background:rgba(248,92,138,.15)">🗂️</div>
+        <div class="panel-title">Recent Entries</div>
+        <button onclick="renderRecent()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;">↺ Refresh</button>
       </div>
-
       <div class="panel-body">
-
-        <div id="recentList">
-          <div class="loading-msg">
-            Loading...
-          </div>
-        </div>
-
+        <div id="recentList"><div class="loading-msg">Loading…</div></div>
       </div>
-
     </div>
 
   </div>
-
 </div>
 
 <div id="toast"></div>
 
-<!-- FIREBASE -->
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   STORAGE FORMAT
+   Key:   "tasks_YYYY-MM"   (one key per month)
+   Value: plain text, one entry per line, pipe-delimited:
+          DATE|EVENT|DESCRIPTION|LEAVE
+          2025-05-20|Sprint Planning|Completed auth module and fixed bugs|false
+          2025-05-21|Leave||true
+   ═══════════════════════════════════════════════════════════════ */
 
-<script type="module">
+const SEP = '|';
+const NEWLINE = '\n';
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs,
-  query,
-  orderBy,
-  where,
-  Timestamp
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-/* FIREBASE CONFIG */
-  
-  const firebaseConfig = {
-  apiKey: "AIzaSyAH2tTuS7_O4Gs-ys_-5DyPBKMUQFsL-LE",
-  authDomain: "task-192b2.firebaseapp.com",
-  databaseURL: "https://task-192b2-default-rtdb.firebaseio.com",
-  projectId: "task-192b2",
-  storageBucket: "task-192b2.firebasestorage.app",
-  messagingSenderId: "229241002364",
-  appId: "1:229241002364:web:8c54bee46fa79e8bb1ecf9",
-  measurementId: "G-42MBCX18NQ"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-/* HELPERS */
-
-function pad(n){
-  return String(n).padStart(2,'0');
-}
+/* ── Helpers ─────────────────────────────────────────────────── */
+function pad(n){ return String(n).padStart(2,'0'); }
 
 function todayStr(){
-  const d = new Date();
-
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const n = new Date();
+  return `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
 }
 
-function formatDate(dateStr){
+function monthKey(dateStr){
+  // "YYYY-MM-DD" → "tasks_YYYY-MM"
+  return 'tasks_' + dateStr.slice(0,7);
+}
 
+function fmtDateLabel(dateStr){
   const [y,m,d] = dateStr.split('-');
-
-  const dt = new Date(y,m-1,d);
-
-  return dt.toLocaleDateString('en-IN',{
-    weekday:'short',
-    day:'2-digit',
-    month:'short',
-    year:'numeric'
-  });
+  const dt = new Date(+y, +m-1, +d);
+  return dt.toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
 }
 
-/* TOAST */
-
-let toastTimer;
-
-function showToast(msg,type='success'){
-
-  const toast = document.getElementById('toast');
-
-  toast.textContent = msg;
-  toast.className = `show ${type}`;
-
-  clearTimeout(toastTimer);
-
-  toastTimer = setTimeout(()=>{
-    toast.className = '';
-  },3000);
+function dayName(dateStr){
+  const [y,m,d] = dateStr.split('-');
+  return new Date(+y,+m-1,+d).toLocaleDateString('en-IN',{weekday:'long'});
 }
 
-/* TOGGLE */
+function monthLabel(ym){ // "YYYY-MM"
+  const [y,m] = ym.split('-');
+  return new Date(+y,+m-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+}
 
-function toggleLeave(){
+/* ── Parse / Serialize TXT ──────────────────────────────────── */
+function parseTxt(txt){
+  // Returns array of {date, event, description, isLeave}
+  return txt.split(NEWLINE)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      const parts = line.split(SEP);
+      return {
+        date:        parts[0] || '',
+        event:       parts[1] || '',
+        description: parts[2] || '',
+        isLeave:     parts[3] === 'true'
+      };
+    })
+    .filter(e => e.date);
+}
 
+function serializeTxt(entries){
+  return entries
+    .map(e => [
+      e.date,
+      e.event.replace(/[|\n]/g,' '),
+      e.description.replace(/[|\n]/g,' '),
+      String(e.isLeave)
+    ].join(SEP))
+    .join(NEWLINE);
+}
+
+/* ── Get all entries for a month key ────────────────────────── */
+function getMonthEntries(key){
+  const raw = localStorage.getItem(key);
+  if(!raw) return [];
+  return parseTxt(raw);
+}
+
+/* ── Save one entry ─────────────────────────────────────────── */
+function saveEntry(entry){
+  const key = monthKey(entry.date);
+  const entries = getMonthEntries(key);
+
+  // Remove duplicate for same date+event combo (overwrite)
+  const idx = entries.findIndex(e => e.date === entry.date && e.event === entry.event);
+  if(idx >= 0) entries[idx] = entry;
+  else entries.push(entry);
+
+  // Sort by date
+  entries.sort((a,b) => a.date.localeCompare(b.date));
+  localStorage.setItem(key, serializeTxt(entries));
+}
+
+/* ── All stored month keys ──────────────────────────────────── */
+function getAllMonthKeys(){
+  return Object.keys(localStorage)
+    .filter(k => k.startsWith('tasks_'))
+    .sort();
+}
+
+/* ── Total entry count ──────────────────────────────────────── */
+function totalCount(){
+  return getAllMonthKeys().reduce((acc,k) => acc + getMonthEntries(k).length, 0);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   UI
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Leave Toggle */
+function handleToggleClick(){
   const cb = document.getElementById('leaveToggle');
-
-  const row = document.getElementById('toggleRow');
-
-  const sub = document.getElementById('toggleSub');
-
-  const desc = document.getElementById('descSection');
-
-  const banner = document.getElementById('leaveBanner');
-
-  const active = cb.checked;
-
-  row.classList.toggle('active',active);
-
-  desc.classList.toggle('hidden',active);
-
-  banner.classList.toggle('show',active);
-
-  sub.textContent = active ? 'Leave day' : 'Working day';
+  // The label click fires before checkbox changes, so flip manually
+  cb.checked = !cb.checked;
+  applyToggleState();
+}
+function applyToggleState(){
+  const cb   = document.getElementById('leaveToggle');
+  const row  = document.getElementById('toggleRow');
+  const sec  = document.getElementById('descSection');
+  const sub  = document.getElementById('toggleSub');
+  const ban  = document.getElementById('leaveBanner');
+  const on   = cb.checked;
+  row.classList.toggle('active', on);
+  sec.classList.toggle('hidden', on);
+  ban.classList.toggle('show',   on);
+  sub.textContent = on ? 'Leave day' : 'Working day';
 }
 
-/* SAVE */
+/* Toast */
+let _toastTimer;
+function showToast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(()=>{ t.className=''; }, 3200);
+}
 
-async function saveTask(e){
-
-  e.preventDefault();
-
-  const date = document.getElementById('taskDate').value;
-
-  const event = document.getElementById('taskEvent').value.trim();
-
+/* ── Save Task ──────────────────────────────────────────────── */
+function saveTask(){
+  const date    = document.getElementById('taskDate').value;
   const isLeave = document.getElementById('leaveToggle').checked;
+  const desc    = isLeave ? '' : document.getElementById('taskDesc').value.trim();
+  const event   = document.getElementById('taskEvent').value.trim() || (isLeave ? 'Leave' : 'Task');
 
-  const desc = isLeave
-    ? ''
-    : document.getElementById('taskDesc').value.trim();
-
-  if(!date){
-    showToast('Select a date','error');
-    return;
-  }
-
-  if(!isLeave && !desc){
-    showToast('Enter task description','error');
-    return;
-  }
+  if(!date){ showToast('Please pick a date','error'); return; }
+  if(!isLeave && !desc){ showToast('Enter a description','error'); return; }
 
   const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
 
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-
-  try{
-
-    const [y,m,d] = date.split('-').map(Number);
-
-    await addDoc(collection(db,'tasks'),{
-
-      date,
-
-      dateTs: Timestamp.fromDate(
-        new Date(y,m-1,d,12,0,0)
-      ),
-
-      event: event || (isLeave ? 'Leave' : 'Task'),
-
-      description: desc,
-
-      isLeave,
-
-      createdAt: Timestamp.now()
-
-    });
-
-    showToast('Saved successfully');
-
-    document.getElementById('taskForm').reset();
-
-    document.getElementById('taskDate').value = todayStr();
-
-    toggleLeave();
-
-    loadTasks();
-
-  }catch(err){
-
-    console.error(err);
-
-    showToast('Firebase error','error');
-
-  }finally{
-
-    btn.disabled = false;
-    btn.textContent = 'Save Entry';
-
+  try {
+    saveEntry({ date, event, description: desc, isLeave });
+    showToast('✓ Entry saved to ' + monthKey(date).replace('tasks_','') + '.txt', 'success');
+    // Reset form
+    document.getElementById('taskEvent').value = '';
+    document.getElementById('taskDesc').value  = '';
+    document.getElementById('leaveToggle').checked = false;
+    applyToggleState();
+    updateUI();
+  } catch(e){
+    console.error(e);
+    showToast('Save failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Entry';
   }
 }
 
-/* BUILD CARD */
-
-function buildCard(data){
-
-  return `
-    <div class="task-card ${data.isLeave ? 'card-leave' : ''}">
-
-      <div class="card-top">
-
-        <span class="card-date">
-          ${formatDate(data.date)}
-        </span>
-
-        <span class="badge ${data.isLeave ? 'leave-badge' : 'work-badge'}">
-          ${data.isLeave ? 'LEAVE' : 'WORK'}
-        </span>
-
-      </div>
-
-      <div class="card-event">
-        ${data.event}
-      </div>
-
-      <div class="card-desc">
-        ${
-          data.isLeave
-          ? 'Day off — no task logged.'
-          : data.description.replace(/\n/g,'<br>')
-        }
-      </div>
-
-    </div>
-  `;
-}
-
-/* LOAD */
-
-async function loadTasks(){
-
+/* ── Render recent entries (latest 12) ──────────────────────── */
+function renderRecent(){
   const list = document.getElementById('recentList');
-
-  list.innerHTML = `
-    <div class="loading-msg">
-      Loading...
-    </div>
-  `;
-
-  try{
-
-    const q = query(
-      collection(db,'tasks'),
-      orderBy('dateTs','desc')
-    );
-
-    const snap = await getDocs(q);
-
-    if(snap.empty){
-
-      list.innerHTML = `
-        <div class="empty-msg">
-          No entries yet
-        </div>
-      `;
-
-      return;
-    }
-
-    let html = '';
-    let count = 0;
-
-    snap.forEach(doc=>{
-
-      if(count >= 10) return;
-
-      html += buildCard(doc.data());
-
-      count++;
-
-    });
-
-    list.innerHTML = html;
-
-  }catch(err){
-
-    console.error(err);
-
-    list.innerHTML = `
-      <div class="empty-msg">
-        Unable to load tasks
-      </div>
-    `;
+  const keys = getAllMonthKeys().reverse(); // newest month first
+  let all = [];
+  for(const k of keys){
+    const entries = getMonthEntries(k).slice().reverse();
+    all = all.concat(entries);
+    if(all.length >= 12) break;
   }
-}
+  all = all.slice(0,12);
 
-/* EXPORT */
-
-async function exportCSV(){
-
-  const month = document.getElementById('exportMonth').value;
-
-  if(!month){
-    showToast('Select a month','error');
+  if(!all.length){
+    list.innerHTML = '<div class="empty-msg">No entries yet — add your first task!</div>';
     return;
   }
-
-  const [y,m] = month.split('-').map(Number);
-
-  const start = new Date(y,m-1,1);
-
-  const end = new Date(y,m,0,23,59,59);
-
-  try{
-
-    const q = query(
-
-      collection(db,'tasks'),
-
-      where('dateTs','>=',Timestamp.fromDate(start)),
-
-      where('dateTs','<=',Timestamp.fromDate(end)),
-
-      orderBy('dateTs','asc')
-
-    );
-
-    const snap = await getDocs(q);
-
-    if(snap.empty){
-
-      showToast('No data found','error');
-
-      return;
-    }
-
-    const rows = [
-      ['Date','Event','Description','Leave']
-    ];
-
-    snap.forEach(doc=>{
-
-      const d = doc.data();
-
-      rows.push([
-        d.date,
-        d.event,
-        d.description,
-        d.isLeave ? 'Yes' : 'No'
-      ]);
-
-    });
-
-    const csv = rows.map(row=>
-
-      row.map(col=>
-        `"${String(col).replace(/"/g,'""')}"`
-      ).join(',')
-
-    ).join('\n');
-
-    const blob = new Blob([csv],{
-      type:'text/csv'
-    });
-
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement('a');
-
-    a.href = url;
-
-    a.download = `tasks_${month}.csv`;
-
-    a.click();
-
-    URL.revokeObjectURL(url);
-
-    showToast('CSV exported');
-
-  }catch(err){
-
-    console.error(err);
-
-    showToast('Export failed','error');
-
-  }
+  list.innerHTML = all.map(buildCard).join('');
 }
 
-/* INIT */
+function buildCard(e){
+  const badge = e.isLeave
+    ? '<span class="badge leave-badge">LEAVE</span>'
+    : '<span class="badge work-badge">WORK</span>';
+  const descHtml = e.isLeave
+    ? '<p class="card-desc leave-note">🏖️ Day off — no task logged.</p>'
+    : `<p class="card-desc">${e.description.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</p>`;
+  return `
+    <div class="task-card ${e.isLeave?'card-leave':''}">
+      <div class="card-top">
+        <span class="card-date">${fmtDateLabel(e.date)}</span>
+        ${badge}
+      </div>
+      <p class="card-event">${e.event.replace(/</g,'&lt;')}</p>
+      ${descHtml}
+    </div>`;
+}
 
-window.addEventListener('DOMContentLoaded',()=>{
+/* ── Month chips ────────────────────────────────────────────── */
+function renderChips(){
+  const wrap = document.getElementById('monthChips');
+  const keys = getAllMonthKeys();
+  if(!keys.length){ wrap.innerHTML=''; return; }
+  wrap.innerHTML = keys.reverse().map(k => {
+    const ym = k.replace('tasks_','');
+    const cnt = getMonthEntries(k).length;
+    return `<div class="month-chip">${monthLabel(ym)} <span class="chip-count">${cnt}</span></div>`;
+  }).join('');
+}
 
+/* ── Storage count in header ────────────────────────────────── */
+function updateStorageCount(){
+  document.getElementById('storageCount').textContent = totalCount();
+}
+
+/* ── Unified UI refresh ─────────────────────────────────────── */
+function updateUI(){
+  renderRecent();
+  renderChips();
+  updateStorageCount();
+}
+
+/* ── Download TXT ───────────────────────────────────────────── */
+function downloadTXT(){
+  const monthVal = document.getElementById('exportMonth').value;
+  if(!monthVal){ showToast('Select a month first','error'); return; }
+
+  const key  = 'tasks_' + monthVal;
+  const raw  = localStorage.getItem(key);
+  if(!raw || !raw.trim()){ showToast('No data for ' + monthLabel(monthVal),'error'); return; }
+
+  // Build a human-readable TXT
+  const entries = parseTxt(raw);
+  const lines   = [];
+  lines.push(`TASK LOG — ${monthLabel(monthVal).toUpperCase()}`);
+  lines.push('='.repeat(50));
+  lines.push('');
+  for(const e of entries){
+    lines.push(`DATE        : ${e.date}  (${dayName(e.date)})`);
+    lines.push(`EVENT       : ${e.event}`);
+    if(e.isLeave){
+      lines.push(`TYPE        : LEAVE`);
+    } else {
+      lines.push(`TYPE        : WORK`);
+      lines.push(`DESCRIPTION : ${e.description}`);
+    }
+    lines.push('-'.repeat(50));
+  }
+  lines.push('');
+  lines.push(`Total entries: ${entries.length}`);
+  lines.push(`Exported on : ${new Date().toLocaleString('en-IN')}`);
+
+  const blob = new Blob([lines.join('\n')], {type:'text/plain'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `tasks_${monthVal}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`Downloaded tasks_${monthVal}.txt (${entries.length} entries)`,'success');
+}
+
+/* ── Export CSV ─────────────────────────────────────────────── */
+function exportCSV(){
+  const monthVal = document.getElementById('exportMonth').value;
+  if(!monthVal){ showToast('Select a month first','error'); return; }
+
+  const key  = 'tasks_' + monthVal;
+  const raw  = localStorage.getItem(key);
+  if(!raw || !raw.trim()){ showToast('No data for ' + monthLabel(monthVal),'error'); return; }
+
+  const entries = parseTxt(raw);
+  const rows = [['Date','Day','Event / Title','Description','Leave']];
+  for(const e of entries){
+    rows.push([
+      e.date,
+      dayName(e.date),
+      e.event,
+      e.isLeave ? 'LEAVE' : e.description,
+      e.isLeave ? 'Yes' : 'No'
+    ]);
+  }
+
+  const csv  = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `tasks_${monthVal}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`Exported ${entries.length} rows as CSV`,'success');
+}
+
+/* ── Init ───────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('taskDate').value = todayStr();
-
   const now = new Date();
-
-  document.getElementById('exportMonth').value =
-    `${now.getFullYear()}-${pad(now.getMonth()+1)}`;
-
-  loadTasks();
-
+  document.getElementById('exportMonth').value = `${now.getFullYear()}-${pad(now.getMonth()+1)}`;
+  updateUI();
 });
-
-/* EVENTS */
-
-document
-  .getElementById('leaveToggle')
-  .addEventListener('change',toggleLeave);
-
-document
-  .getElementById('taskForm')
-  .addEventListener('submit',saveTask);
-
-document
-  .getElementById('exportBtn')
-  .addEventListener('click',exportCSV);
-
 </script>
 
 </body>
