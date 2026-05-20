@@ -2,3 +2,4 @@
 2026-05-16|Leave||true
 2026-05-18|Pagi|Xml file import|false
 2026-05-19|Phagi|XML file|false
+2026-05-20|Study|Sas communication|false
