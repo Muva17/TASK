@@ -3,3 +3,4 @@
 2026-05-18|Pagi|Xml file import|false
 2026-05-19|Phagi|XML file|false
 2026-05-20|Study|Sas communication|false
+2026-05-21|Generation|Cb alteration & Generation of udupi site|false
