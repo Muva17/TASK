@@ -12,3 +12,4 @@
 2026-05-27|Validation|Pagi 5-6 iec and fbd validation|false
 2026-05-28|Validation|Pagi 6th version fbd validation|false
 2026-05-29|Validation|Pagi 765kv and graphics|false
+2026-05-31|Leave||true
