@@ -5,3 +5,4 @@
 2026-06-05|Pagi|Validation in pagi graphics changes|false
 2026-06-06|Pagi|Validation in server|false
 2026-06-07|Leave||true
+2026-06-09|Kankani|Launch blend|false
