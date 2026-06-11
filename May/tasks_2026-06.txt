@@ -7,3 +7,4 @@
 2026-06-07|Leave||true
 2026-06-08|Pagi|Fbd import in 7th version|false
 2026-06-09|Kankani|Launch blend|false
+2026-06-11|Relay spare unspare|Nlc debug|false
