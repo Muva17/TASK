@@ -9,3 +9,4 @@
 2026-06-09|Kankani|Launch blend|false
 2026-06-10|Task|Nlc db relay checking|false
 2026-06-11|Relay spare unspare|Nlc debug|false
+2026-06-12|Server installation 7.7.4.10|Server installation for rrvpnl barmer|false
